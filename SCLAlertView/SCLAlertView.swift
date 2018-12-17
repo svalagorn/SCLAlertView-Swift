@@ -36,15 +36,15 @@ public enum SCLAlertViewStyle {
     public var defaultColorInt: UInt {
         switch self {
         case .success:
-            return 0x22B573
+            return 0x80cc98
         case .error:
             return 0xC1272D
         case .notice:
             return 0x727375
         case .warning:
-            return 0xFFD110
+            return 0xffc793
         case .info:
-            return 0x2866BF
+            return 0x6a92dd //hax
         case .edit:
             return 0xA429FF
         case .wait:
@@ -59,7 +59,7 @@ public enum SCLAlertViewStyle {
 
 // Animation Styles
 public enum SCLAnimationStyle {
-    case noAnimation, topToBottom, bottomToTop, leftToRight, rightToLeft
+    case noAnimation, topToBottom, bottomToTop, leftToRight, rightToLeft, slideDownSvalagorn
 }
 
 // Action Types
@@ -217,7 +217,7 @@ open class SCLAlertView: UIViewController {
         // Activity indicator
         var activityIndicatorStyle: UIActivityIndicatorView.Style
         
-      public init(kDefaultShadowOpacity: CGFloat = 0.7, kCircleTopPosition: CGFloat = 0.0, kCircleBackgroundTopPosition: CGFloat = 6.0, kCircleHeight: CGFloat = 56.0, kCircleIconHeight: CGFloat = 20.0, kTitleHeight:CGFloat = 25.0,  kWindowWidth: CGFloat = 240.0, kWindowHeight: CGFloat = 178.0, kTextHeight: CGFloat = 90.0, kTextFieldHeight: CGFloat = 30.0, kTextViewdHeight: CGFloat = 80.0, kButtonHeight: CGFloat = 35.0, kTitleFont: UIFont = UIFont.systemFont(ofSize: 20), kTitleMinimumScaleFactor: CGFloat = 1.0, kTextFont: UIFont = UIFont.systemFont(ofSize: 14), kButtonFont: UIFont = UIFont.boldSystemFont(ofSize: 14), showCloseButton: Bool = true, showCircularIcon: Bool = true, shouldAutoDismiss: Bool = true, contentViewCornerRadius: CGFloat = 5.0, fieldCornerRadius: CGFloat = 3.0, buttonCornerRadius: CGFloat = 3.0, hideWhenBackgroundViewIsTapped: Bool = false, circleBackgroundColor: UIColor = UIColor.white, contentViewColor: UIColor = UIColorFromRGB(0xFFFFFF), contentViewBorderColor: UIColor = UIColorFromRGB(0xCCCCCC), titleColor: UIColor = UIColorFromRGB(0x4D4D4D), subTitleColor: UIColor = UIColorFromRGB(0x4D4D4D), margin: Margin = Margin(), dynamicAnimatorActive: Bool = false, disableTapGesture: Bool = false, buttonsLayout: SCLAlertButtonLayout = .vertical, activityIndicatorStyle: UIActivityIndicatorView.Style = .white) {
+      public init(kDefaultShadowOpacity: CGFloat = 0.7, kCircleTopPosition: CGFloat = 0.0, kCircleBackgroundTopPosition: CGFloat = 6.0, kCircleHeight: CGFloat = 56.0, kCircleIconHeight: CGFloat = 20.0, kTitleHeight:CGFloat = 25.0,  kWindowWidth: CGFloat = 240.0, kWindowHeight: CGFloat = 178.0, kTextHeight: CGFloat = 90.0, kTextFieldHeight: CGFloat = 30.0, kTextViewdHeight: CGFloat = 80.0, kButtonHeight: CGFloat = 35.0, kTitleFont: UIFont = UIFont(name: "AvenirNext-Medium", size: 20)!, kTitleMinimumScaleFactor: CGFloat = 1.0, kTextFont: UIFont = UIFont(name: "AvenirNext-Regular", size: 14)!, kButtonFont: UIFont = UIFont(name: "AvenirNext-Bold", size: 16)!, showCloseButton: Bool = true, showCircularIcon: Bool = true, shouldAutoDismiss: Bool = true, contentViewCornerRadius: CGFloat = 5.0, fieldCornerRadius: CGFloat = 3.0, buttonCornerRadius: CGFloat = 3.0, hideWhenBackgroundViewIsTapped: Bool = false, circleBackgroundColor: UIColor = UIColor.white, contentViewColor: UIColor = UIColorFromRGB(0xFFFFFF), contentViewBorderColor: UIColor = UIColorFromRGB(0xCCCCCC), titleColor: UIColor = UIColorFromRGB(0x4D4D4D), subTitleColor: UIColor = UIColorFromRGB(0x4D4D4D), margin: Margin = Margin(), dynamicAnimatorActive: Bool = false, disableTapGesture: Bool = false, buttonsLayout: SCLAlertButtonLayout = .vertical, activityIndicatorStyle: UIActivityIndicatorView.Style = .white) {
             
             self.kDefaultShadowOpacity = kDefaultShadowOpacity
             self.kCircleTopPosition = kCircleTopPosition
@@ -889,15 +889,21 @@ open class SCLAlertView: UIViewController {
         }
         
         // Animate in the alert view
-        self.showAnimation(animationStyle)
+        if animationStyle == .slideDownSvalagorn {
+            self.showAnimation(animationStyle, animationDuration: 0.5)
+        } else {
+            self.showAnimation(animationStyle)
+        }
        
         // Chainable objects
         return SCLAlertViewResponder(alertview: self)
     }
     
+    var animationStyleHax: SCLAnimationStyle?
+    
     // Show animation in the alert view
     fileprivate func showAnimation(_ animationStyle: SCLAnimationStyle = .topToBottom, animationStartOffset: CGFloat = -400.0, boundingAnimationOffset: CGFloat = 15.0, animationDuration: TimeInterval = 0.2) {
-        
+        animationStyleHax = animationStyle //hax
         let rv = UIApplication.shared.keyWindow! as UIWindow
         var animationStartOrigin = self.baseView.frame.origin
         var animationCenter : CGPoint = rv.center
@@ -923,6 +929,11 @@ open class SCLAlertView: UIViewController {
         case .rightToLeft:
             animationStartOrigin = CGPoint(x: self.baseView.frame.origin.x - animationStartOffset, y: animationStartOrigin.y)
             animationCenter = CGPoint(x: animationCenter.x - boundingAnimationOffset, y: animationCenter.y)
+            
+        case .slideDownSvalagorn:
+            self.view.alpha = 0.95
+            animationStartOrigin = CGPoint(x: animationStartOrigin.x, y: -500)
+            animationCenter = CGPoint(x: animationCenter.x, y: 130)
         }
 
         self.baseView.frame.origin = animationStartOrigin
@@ -934,13 +945,15 @@ open class SCLAlertView: UIViewController {
             self.animate(item: self.baseView, center: rv.center)
         } else {
             UIView.animate(withDuration: animationDuration, animations: {
-                self.view.alpha = 1.0
-                 self.baseView.center = animationCenter
-                }, completion: { finished in
+                self.view.alpha = animationStyle != .slideDownSvalagorn ? 1.0 : 0.95
+                self.baseView.center = animationCenter
+            }, completion: { finished in
+                if animationStyle != .slideDownSvalagorn {
                     UIView.animate(withDuration: animationDuration, animations: {
                         self.view.alpha = 1.0
                         self.baseView.center = rv.center
                     })
+                }
             })
         }
     }
@@ -985,10 +998,12 @@ open class SCLAlertView: UIViewController {
     
     // Close SCLAlertView
     @objc open func hideView() {
-        UIView.animate(withDuration: 0.2, animations: {
-            self.view.alpha = 0
+        if animationStyleHax == .slideDownSvalagorn {
+            //let animationOrigin = baseView.frame.origin
+            UIView.animate(withDuration: 0.5, animations: {
+                self.baseView.center = CGPoint(x: self.view.center.x, y: -500)
             }, completion: { finished in
-                
+                self.view.alpha = 0
                 // Stop timeoutTimer so alertView does not attempt to hide itself and fire it's dimiss block a second time when close button is tapped
                 self.timeoutTimer?.invalidate()
                 
@@ -1006,10 +1021,37 @@ open class SCLAlertView: UIViewController {
                     button.target = nil
                     button.selector = nil
                 }
-                
+                self.animationStyleHax = nil
                 self.view.removeFromSuperview()
                 self.selfReference = nil
-        })
+            })
+        } else {
+            UIView.animate(withDuration: 0.2, animations: {
+                self.view.alpha = 0
+                }, completion: { finished in
+                    
+                    // Stop timeoutTimer so alertView does not attempt to hide itself and fire it's dimiss block a second time when close button is tapped
+                    self.timeoutTimer?.invalidate()
+                    
+                    // Stop showTimeoutTimer
+                    self.showTimeoutTimer?.invalidate()
+                    
+                    if let dismissBlock = self.dismissBlock {
+                        // Call completion handler when the alert is dismissed
+                        dismissBlock()
+                    }
+                    
+                    // This is necessary for SCLAlertView to be de-initialized, preventing a strong reference cycle with the viewcontroller calling SCLAlertView.
+                    for button in self.buttons {
+                        button.action = nil
+                        button.target = nil
+                        button.selector = nil
+                    }
+                    self.animationStyleHax = nil
+                    self.view.removeFromSuperview()
+                    self.selfReference = nil
+            })
+        }
     }
     
     @objc open func hideViewTimeout() {
